@@ -1,4 +1,5 @@
 import {
+    CartesianGrid,
     Line,
     LineChart,
     ResponsiveContainer,
@@ -52,12 +53,15 @@ export function RevenueChart() {
                                 })
                             }
                         />
+                        <CartesianGrid vertical={false} className='stroke-muted' />
+
                         <Line
                             stroke={colors.violet[500]}
                             type="linear"
                             strokeWidth={2}
                             dataKey="revenue"
                         />
+
                     </LineChart>
                 </ResponsiveContainer>
             </CardContent>
