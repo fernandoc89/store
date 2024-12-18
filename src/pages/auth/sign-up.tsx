@@ -1,8 +1,10 @@
 import { Helmet } from 'react-helmet-async'
 
+import { registerStore } from '@/api/register-store'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useMutation } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router'
 import { toast } from 'sonner'
@@ -17,22 +19,33 @@ const signUpForm = z.object({
 
 type SignUpForm = z.infer<typeof signUpForm>
 
+
+
 export function SignUp() {
     const navigate = useNavigate()
     const { register, handleSubmit, formState: { isSubmitting } } = useForm<SignUpForm>()
 
+    const { mutateAsync: registerStoreFn } = useMutation({
+        mutationFn: registerStore,
+    })
+
     async function handleSignUp(data: SignUpForm) {
 
         try {
-            console.log(data)
+            console.log(data, 'estou aqui')
 
-            await new Promise((resolve) => setTimeout(resolve, 2000))
+            await registerStoreFn({
+                storeName: data.storeName,
+                managerName: data.managerName,
+                email: data.email,
+                phone: data.phone
+            })
 
             toast.success('Loja cadastrada com sucesso!.', {
                 action: {
                     label: 'Login',
-                    onClick: () => navigate("/sign-in")
-                }
+                    onClick: () => navigate(`/sign-in?email=${data.email}`),
+                },
             })
         } catch {
             toast.error('Erro ao cadastrar loja.')
