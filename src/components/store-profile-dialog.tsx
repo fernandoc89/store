@@ -1,8 +1,8 @@
-import { getManagedSore } from "@/api/get-managed-store";
+import { getManagedSore, GetManagedStoreResponse } from "@/api/get-managed-store";
 import { updateProfile } from "@/api/update-profile";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DialogClose } from "@radix-ui/react-dialog";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -14,12 +14,13 @@ import { Textarea } from "./ui/textarea";
 
 const storeProfileSchema = z.object({
     name: z.string().min(1),
-    description: z.string()
+    description: z.string().nullable()
 })
 
 type StoreProfileSchema = z.infer<typeof storeProfileSchema>
 
 export function StoreProfileDialog() {
+    const queryClient = useQueryClient()
 
     const { data: managedStore } = useQuery({
         queryKey: ['managed-store'],
@@ -35,8 +36,32 @@ export function StoreProfileDialog() {
         }
     })
 
+    function updateManagedStoreCache({name, description}: StoreProfileSchema){
+        const cached = queryClient.getQueryData<GetManagedStoreResponse>(["managed-store"])
+
+        if (cached) {
+            queryClient.setQueryData<GetManagedStoreResponse>(["managed-store"], {
+                ...cached,
+                name,
+                description
+            })
+        }
+
+        return { cached }
+    }
+
     const { mutateAsync: updateProfileFn } = useMutation({
-        mutationFn: updateProfile
+        mutationFn: updateProfile,
+        onMutate({ name, description }) {
+          const { cached } = updateManagedStoreCache({name, description})
+
+          return { previousProfile: cached }
+        },
+        onError(_, __, context) {
+            if (context?.previousProfile) {
+                updateManagedStoreCache(context.previousProfile)
+            }
+        }
     })
 
     async function handleUpdateProfile(data: StoreProfileSchema) {
