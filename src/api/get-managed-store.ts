@@ -1,6 +1,6 @@
 import { api } from "@/lib/axios";
 
-interface GetManagedSoreResponse {
+export interface GetManagedStoreResponse {
     id: string;
     name: string;
     createdAt: Date | null;
@@ -10,7 +10,7 @@ interface GetManagedSoreResponse {
 }
 
 export async function getManagedSore() {
-    const response = await api.get<GetManagedSoreResponse>('/managed-store')
+    const response = await api.get<GetManagedStoreResponse>('/managed-store')
 
     return response.data
 }
